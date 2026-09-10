@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import Environment, FileSystemLoader
 
 from bot.osint.types import ToolResult
 
@@ -20,9 +20,14 @@ TOOL_NAMES = {
 def render_report(
     query: str, query_type: str, results: list[ToolResult], reports_dir: Path
 ) -> Path:
+    # Unconditional autoescape: select_autoescape() decides by filename suffix,
+    # and this module's template is named "template.html.j2" (suffix ".j2"),
+    # which select_autoescape would NOT recognize as HTML - silently disabling
+    # escaping of untrusted OSINT tool output. This module only ever renders
+    # this one (always-HTML) template, so autoescape=True is always correct.
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATE_DIR)),
-        autoescape=select_autoescape(["html"]),
+        autoescape=True,
     )
     template = env.get_template("template.html.j2")
     html = template.render(
