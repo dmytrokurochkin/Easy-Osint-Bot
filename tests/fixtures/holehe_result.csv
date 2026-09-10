@@ -1,0 +1,4 @@
+name,domain,method,frequent_rate_limit,rateLimit,exists,emailrecovery,phoneNumber,others
+github,github.com,register,False,False,True,,,
+snapchat,snapchat.com,login,False,False,False,,,
+discord,discord.com,register,False,False,True,t***@gmail.com,,
