@@ -51,7 +51,7 @@ email або юзернейм, паралельно запускає набір 
 ```
 bot/
   main.py              # entrypoint, aiogram Dispatcher, polling
-  config.py            # читання .env (BOT_TOKEN, ADMIN_ID)
+  config.py            # читання .env (BOT_TOKEN, ADMIN_ID, BLACKBIRD_DIR)
   db.py                 # aiosqlite: users, settings
   keyboards.py          # усі InlineKeyboardMarkup білдери
   handlers/
@@ -131,46 +131,64 @@ users; в `users` потрапляють лише додані ним інші �
 
 ## Інструменти — деталі інтеграції
 
-Всі запускаються в ізольованій тимчасовій директорії на запит (`tempfile.mkdtemp()`),
-щоб паралельні запити різних юзерів не тереблись у output-файлах.
+Кожен запит отримує власну ізольовану тимчасову директорію (`tempfile.mkdtemp()`),
+щоб паралельні запити різних юзерів не тереблись у output-файлах — там, де
+інструмент дозволяє вказати шлях виводу явно. Усі команди/шляхи нижче звірені
+з першоджерела (вихідний код кожного інструмента), не з README.
 
-**blackbird** (username):
+**blackbird** (username) — прапорця для директорії виводу НЕМАЄ, шлях фіксований
+самим інструментом:
 ```
-python blackbird.py --username <query> --json --output-dir <tmp_dir>
+python blackbird.py --username <query> --json
 ```
-Читаємо згенерований `*.json`, парсимо список знайдених сервісів (service name + link),
-формат вже підтверджено (`src/modules/export/json.py` — прямий `json.dump(results, ...)`).
+(запускається з `cwd=<BLACKBIRD_DIR>`, шлях з `.env`). Результат завжди лягає у
+фіксований `<BLACKBIRD_DIR>/results/<query>_<MM_DD_YYYY>_blackbird/<query>_<MM_DD_YYYY>_blackbird.json`
+(дата — `datetime.now().strftime("%m_%d_%Y")`, підтверджено по коду). Файл — це
+список об'єктів `{"name": ..., "url": ..., "category": ..., "status": "FOUND", "metadata": ...}`
+(вже відфільтровано лише знайдені акаунти). Обмеження: два запити з однаковим
+username того самого дня перезапишуть один той самий файл — прийнятно для
+whitelist-масштабу, не для v1 фіксимо.
 
 **maigret** (username):
 ```
 maigret <query> -J simple -fo <tmp_dir> --no-progressbar --no-color
 ```
-Читаємо `<tmp_dir>/report_<query>_simple.json`, парсимо список знайдених сайтів.
-Прапорці підтверджені по джерелу (`maigret.py`: `-J/--json TYPE`, `-fo/--folderoutput`).
+Файл: `<tmp_dir>/report_<query>_simple.json` (шаблон імені підтверджено в
+`maigret.py`: `report_filepath_tpl.format(username=..., postfix=f'_{args.json}.json')`).
+Формат: словник `{sitename: {..., "url_user": "<знайдений URL>", "status": {...}}}`,
+тільки CLAIMED-сайти. Парсимо ключі словника як service name, `url_user` як лінк.
 
 **sherlock** (username):
 ```
 sherlock <query> --csv --folderoutput <tmp_dir> --timeout 60
 ```
-Читаємо `<tmp_dir>/<query>.csv`, парсимо колонки (site, url, status). Прапорці
-підтверджені по джерелу (`sherlock.py`: `--csv`, `--json` там — це НЕ вивід
-результатів, а завантаження стороннього файла з переліком сайтів для перевірки,
-тому для результатів використовуємо `--csv`, а не `--json`).
+Файл: `<tmp_dir>/<query>.csv`, колонки підтверджені по коду:
+`username, name, url_main, url_user, exists, http_status, response_time_s`.
+Беремо рядки де `exists == "Claimed"`, service = `name`, лінк = `url_user`.
 
-**holehe** (email):
+**holehe** (email) — прапорця для директорії виводу НЕМАЄ, пише у поточну
+робочу директорію процесу:
 ```
 holehe <query> --csv --no-color
 ```
-Читаємо згенерований `holehe_*_<email>_results.csv`, парсимо колонки
-(name, exists, rateLimit, emailrecovery, phoneNumber, others).
+(запускається з `cwd=<tmp_dir>`). Файл: `holehe_<unix_timestamp>_<query>_results.csv`
+(timestamp — динамічний, тому після завершення процесу шукаємо файл глобом
+`holehe_*_<query>_results.csv` у `tmp_dir`, а не по точному імені). Колонки:
+`name, domain, method, frequent_rate_limit, rateLimit, exists, emailrecovery, phoneNumber, others`
+(підтверджено по коду модуля). Беремо рядки де `exists == "True"`.
+**Важливо**: holehe завершує процес викликом `exit("All results have been exported to " + name_file)`
+— це рядковий код виходу, тому subprocess завжди повертає **returncode=1** навіть
+при успішному записі файла. Runner визначає успіх не по returncode, а по тому,
+чи з'явився CSV-файл у `tmp_dir` після завершення процесу.
 
 **GHunt** (email, тільки gmail.com і якщо `ghunt_enabled=true` в settings):
 ```
 ghunt email <query> --json <tmp_dir>/ghunt_result.json
 ```
-Читаємо `ghunt_result.json`. Якщо `ghunt` не залогінений на машині (`ghunt login`
-не виконувався) — subprocess завершиться помилкою, обробляється як звичайний
-provider failure ("недоступно" в звіті), без окремої перевірки стану сесії.
+(`--json` приймає точний шлях до файла, підтверджено по `ghunt/cli.py`). Якщо
+`ghunt` не залогінений на машині (`ghunt login` не виконувався) — subprocess
+завершиться помилкою/ненульовим кодом, обробляється як звичайний provider
+failure ("недоступно" в звіті), без окремої перевірки стану сесії.
 
 **phonenumbers** (phone) — без subprocess, прямий Python-виклик у процесі бота:
 ```python
