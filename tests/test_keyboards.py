@@ -1,4 +1,6 @@
-from bot.keyboards import admin_menu, main_menu, users_list_menu
+from pathlib import Path
+
+from bot.keyboards import admin_menu, main_menu, reports_list_menu, users_list_menu
 
 
 def _flatten(markup):
@@ -37,11 +39,6 @@ def test_users_list_menu_has_delete_button_per_user_and_add_button():
     assert "admin:deluser:111" in callback_data
     assert "admin:deluser:222" in callback_data
     assert "admin:adduser" in callback_data
-
-
-from pathlib import Path
-
-from bot.keyboards import reports_list_menu
 
 
 def test_reports_list_menu_one_button_per_report():
