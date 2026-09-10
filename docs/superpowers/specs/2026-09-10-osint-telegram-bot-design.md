@@ -17,7 +17,14 @@ email або юзернейм, паралельно запускає набір 
 
 Включено:
 - Розпізнавання типу запиту: телефон / email / юзернейм
-- username → **blackbird** (`p1ngul1n0/blackbird`, git clone + `pip install -r requirements.txt`, без API-ключів для базового пошуку)
+- username → **blackbird** + **maigret** + **sherlock** запускаються паралельно,
+  кожен — окрема картка в звіті (тимчасовий "порівняльний" режим — усі три
+  перевіряють по суті одне й те саме, тримаємо всі три навмисно, щоб порівняти
+  якість результатів наживо; після порівняння користувач вирішує, які лишити,
+  окремим циклом змін)
+  - **blackbird** (`p1ngul1n0/blackbird`, git clone + `pip install -r requirements.txt`, без API-ключів)
+  - **maigret** (`pip install maigret`, без API-ключів для базового пошуку)
+  - **sherlock** (`pipx install sherlock-project`, без API-ключів)
 - email → **holehe** (`pip install holehe`, без API-ключів) + опціонально **GHunt** (`pipx install ghunt`) для gmail.com-адрес, якщо ввімкнено в налаштуваннях
 - phone → **phonenumbers** (`pip install phonenumbers`, чистий Python, без API-ключів; порт Google libphonenumber) — країна, регіон, оператор, тип лінії, валідність, часовий пояс
 - HTML-звіт у темній "tactical" стилістиці (Tailwind CDN + inline CSS), надсилається як `.html` документ
@@ -31,7 +38,9 @@ email або юзернейм, паралельно запускає набір 
   `ghunt login` (через GHunt Companion, браузерне розширення), GHunt сам зберігає
   сесію на машині; бот лише перемикає `settings.ghunt_enabled` (намагатись/не
   намагатись його викликати) і не знає деталей автентифікації
-- SpiderFoot, maigret, sherlock, web-check — не включені (redundant coverage або зайва інсталяційна вага відносно "no hassle" вимоги)
+- SpiderFoot, web-check — не включені (SpiderFoot: своя база даних і десятки
+  опціональних API-ключів, без яких більшість модулів не працює, суперечить
+  вимозі "без гемору"; web-check: для доменів/IP, не для телефону/email/юзернейма)
 - Рейт-ліміти по кількості запитів — не потрібні, бо доступ і так через whitelist
 - Веб-хостинг / webhook-режим — бот працює через polling
 
@@ -53,9 +62,11 @@ bot/
     detect.py             # визначення типу запиту (phone/email/username)
     runners/
       blackbird.py         # subprocess-обгортка, парсинг json
+      maigret.py            # subprocess-обгортка, парсинг json
+      sherlock.py            # subprocess-обгортка, парсинг csv
       holehe.py             # subprocess-обгортка, парсинг csv
       phone.py              # прямий виклик phonenumbers (без subprocess)
-      ghunt.py              # subprocess-обгортка (умовно, якщо увімкнено і cookies є)
+      ghunt.py              # subprocess-обгортка (умовно, якщо увімкнено в settings)
   report/
     template.html.j2      # Jinja2-шаблон звіту (tactical dark theme)
     render.py              # збірка контексту з результатів -> рендер -> запис файлу
@@ -130,6 +141,22 @@ python blackbird.py --username <query> --json --output-dir <tmp_dir>
 Читаємо згенерований `*.json`, парсимо список знайдених сервісів (service name + link),
 формат вже підтверджено (`src/modules/export/json.py` — прямий `json.dump(results, ...)`).
 
+**maigret** (username):
+```
+maigret <query> -J simple -fo <tmp_dir> --no-progressbar --no-color
+```
+Читаємо `<tmp_dir>/report_<query>_simple.json`, парсимо список знайдених сайтів.
+Прапорці підтверджені по джерелу (`maigret.py`: `-J/--json TYPE`, `-fo/--folderoutput`).
+
+**sherlock** (username):
+```
+sherlock <query> --csv --folderoutput <tmp_dir> --timeout 60
+```
+Читаємо `<tmp_dir>/<query>.csv`, парсимо колонки (site, url, status). Прапорці
+підтверджені по джерелу (`sherlock.py`: `--csv`, `--json` там — це НЕ вивід
+результатів, а завантаження стороннього файла з переліком сайтів для перевірки,
+тому для результатів використовуємо `--csv`, а не `--json`).
+
 **holehe** (email):
 ```
 holehe <query> --csv --no-color
@@ -176,7 +203,7 @@ Jinja2-шаблон за мотивами наданого прикладу (`re
 ## Тестування
 
 - Юніт-тести: `osint/detect.py` (розпізнавання типу — таблиця кейсів), парсери
-  результатів blackbird/holehe (на фікстурних json/csv файлах, без реального виклику
-  інструмента), рендер шаблону (snapshot на фікстурному контексті)
+  результатів blackbird/maigret/sherlock/holehe (на фікстурних json/csv файлах,
+  без реального виклику інструмента), рендер шаблону (snapshot на фікстурному контексті)
 - Ручна перевірка: повний цикл на власному username/email/номері з реального бота,
   включно з admin-flow (додавання/видалення юзера, перемикачі)
