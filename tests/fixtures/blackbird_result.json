@@ -1,0 +1,16 @@
+[
+  {
+    "name": "GitHub (User)",
+    "url": "https://api.github.com/users/mrmozozavr",
+    "category": "coding",
+    "status": "FOUND",
+    "metadata": null
+  },
+  {
+    "name": "Telegram",
+    "url": "https://t.me/mrmozozavr",
+    "category": "social",
+    "status": "FOUND",
+    "metadata": null
+  }
+]
