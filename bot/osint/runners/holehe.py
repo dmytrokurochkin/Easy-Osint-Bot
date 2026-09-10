@@ -1,9 +1,12 @@
 import asyncio
 import csv
 import glob
+import logging
 from pathlib import Path
 
 from bot.osint.types import ToolResult
+
+logger = logging.getLogger(__name__)
 
 TIMEOUT_SECONDS = 120
 
@@ -39,14 +42,26 @@ async def run_holehe(email: str, work_dir: Path) -> ToolResult:
         stderr=asyncio.subprocess.PIPE,
     )
     try:
-        await asyncio.wait_for(proc.communicate(), timeout=TIMEOUT_SECONDS)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=TIMEOUT_SECONDS)
     except asyncio.TimeoutError:
         proc.kill()
+        logger.warning("holehe timed out for email=%r", email)
         return ToolResult(tool="holehe", status="timeout", error="Перевищено час очікування")
 
     matches = glob.glob(str(Path(work_dir) / f"holehe_*_{email}_results.csv"))
     if not matches:
+        logger.warning(
+            "holehe failed: no result file; stderr=%r stdout=%r",
+            stderr.decode(errors="replace")[:500],
+            stdout.decode(errors="replace")[:500],
+        )
         return ToolResult(tool="holehe", status="failed", error="Файл результатів не знайдено")
 
-    items = _parse_result_file(Path(matches[0]))
+    try:
+        items = _parse_result_file(Path(matches[0]))
+    except Exception as e:
+        logger.warning("holehe failed to parse result file %s: %s", matches[0], e)
+        return ToolResult(
+            tool="holehe", status="failed", error=f"Не вдалося розібрати результат: {e}"
+        )
     return ToolResult(tool="holehe", status="ok", items=items)

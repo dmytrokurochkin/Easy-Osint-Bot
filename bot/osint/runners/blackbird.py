@@ -1,9 +1,13 @@
 import asyncio
 import json
+import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 
 from bot.osint.types import ToolResult
+
+logger = logging.getLogger(__name__)
 
 TIMEOUT_SECONDS = 120
 
@@ -18,7 +22,7 @@ async def run_blackbird(username: str, blackbird_dir: Path) -> ToolResult:
     date_raw = datetime.now().strftime("%m_%d_%Y")
 
     proc = await asyncio.create_subprocess_exec(
-        "python",
+        sys.executable,
         "blackbird.py",
         "--username",
         username,
@@ -28,9 +32,10 @@ async def run_blackbird(username: str, blackbird_dir: Path) -> ToolResult:
         stderr=asyncio.subprocess.PIPE,
     )
     try:
-        await asyncio.wait_for(proc.communicate(), timeout=TIMEOUT_SECONDS)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=TIMEOUT_SECONDS)
     except asyncio.TimeoutError:
         proc.kill()
+        logger.warning("blackbird timed out for username=%r", username)
         return ToolResult(tool="blackbird", status="timeout", error="Перевищено час очікування")
 
     result_path = (
@@ -40,7 +45,18 @@ async def run_blackbird(username: str, blackbird_dir: Path) -> ToolResult:
         / f"{username}_{date_raw}_blackbird.json"
     )
     if not result_path.exists():
+        logger.warning(
+            "blackbird failed: no result file; stderr=%r stdout=%r",
+            stderr.decode(errors="replace")[:500],
+            stdout.decode(errors="replace")[:500],
+        )
         return ToolResult(tool="blackbird", status="failed", error="Файл результатів не знайдено")
 
-    items = _parse_result_file(result_path)
+    try:
+        items = _parse_result_file(result_path)
+    except Exception as e:
+        logger.warning("blackbird failed to parse result file %s: %s", result_path, e)
+        return ToolResult(
+            tool="blackbird", status="failed", error=f"Не вдалося розібрати результат: {e}"
+        )
     return ToolResult(tool="blackbird", status="ok", items=items)

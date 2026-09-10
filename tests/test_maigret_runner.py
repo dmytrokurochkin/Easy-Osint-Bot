@@ -34,3 +34,16 @@ async def test_run_maigret_timeout(tmp_path, fake_subprocess, monkeypatch):
     fake_subprocess(sleep=1)
     result = await maigret.run_maigret("mrmozozavr", tmp_path)
     assert result.status == "timeout"
+
+
+async def test_run_maigret_malformed_result_file_is_failed_not_raised(tmp_path, fake_subprocess):
+    fake_subprocess(returncode=0)
+    username = "mrmozozavr"
+    (tmp_path / f"report_{username}_simple.json").write_text(
+        "{not valid json", encoding="utf-8"
+    )
+
+    result = await maigret.run_maigret(username, tmp_path)
+
+    assert result.status == "failed"
+    assert result.error

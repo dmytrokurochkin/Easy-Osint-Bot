@@ -46,3 +46,25 @@ async def test_run_ghunt_timeout(tmp_path, fake_subprocess, monkeypatch):
     fake_subprocess(sleep=1)
     result = await ghunt.run_ghunt("target@gmail.com", tmp_path)
     assert result.status == "timeout"
+
+
+async def test_run_ghunt_malformed_result_file_is_failed_not_raised(tmp_path, fake_subprocess):
+    fake_subprocess(returncode=0)
+
+    async def fake_create(*args, **kwargs):
+        (tmp_path / "ghunt_result.json").write_text("{not valid json", encoding="utf-8")
+        from tests.conftest import FakeProcess
+
+        return FakeProcess(returncode=0)
+
+    import asyncio
+
+    monkeypatch_target = asyncio.create_subprocess_exec
+    asyncio.create_subprocess_exec = fake_create
+    try:
+        result = await ghunt.run_ghunt("target@gmail.com", tmp_path)
+    finally:
+        asyncio.create_subprocess_exec = monkeypatch_target
+
+    assert result.status == "failed"
+    assert result.error

@@ -37,3 +37,18 @@ async def test_run_holehe_timeout(tmp_path, fake_subprocess, monkeypatch):
     fake_subprocess(sleep=1)
     result = await holehe.run_holehe("mrmozozavr@example.com", tmp_path)
     assert result.status == "timeout"
+
+
+async def test_run_holehe_malformed_result_file_is_failed_not_raised(tmp_path, fake_subprocess):
+    fake_subprocess(returncode=1)
+    email = "mrmozozavr@example.com"
+    # Invalid UTF-8 bytes make the file unreadable with the runner's fixed
+    # encoding="utf-8", exercising the _parse_result_file exception path.
+    (tmp_path / f"holehe_1234567890_{email}_results.csv").write_bytes(
+        b"exists\n\xff\xfe\x00broken"
+    )
+
+    result = await holehe.run_holehe(email, tmp_path)
+
+    assert result.status == "failed"
+    assert result.error

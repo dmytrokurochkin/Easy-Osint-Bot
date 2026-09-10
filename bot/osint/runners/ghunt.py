@@ -1,7 +1,10 @@
 import asyncio
+import logging
 from pathlib import Path
 
 from bot.osint.types import ToolResult
+
+logger = logging.getLogger(__name__)
 
 TIMEOUT_SECONDS = 120
 
@@ -62,15 +65,27 @@ async def run_ghunt(email: str, work_dir: Path) -> ToolResult:
         stderr=asyncio.subprocess.PIPE,
     )
     try:
-        await asyncio.wait_for(proc.communicate(), timeout=TIMEOUT_SECONDS)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=TIMEOUT_SECONDS)
     except asyncio.TimeoutError:
         proc.kill()
+        logger.warning("ghunt timed out for email=%r", email)
         return ToolResult(tool="ghunt", status="timeout", error="Перевищено час очікування")
 
     if not json_path.exists():
+        logger.warning(
+            "ghunt failed: no result file; stderr=%r stdout=%r",
+            stderr.decode(errors="replace")[:500],
+            stdout.decode(errors="replace")[:500],
+        )
         return ToolResult(
             tool="ghunt", status="failed", error="GHunt не авторизований або ціль не знайдена"
         )
 
-    items = _parse_result_file(json_path)
+    try:
+        items = _parse_result_file(json_path)
+    except Exception as e:
+        logger.warning("ghunt failed to parse result file %s: %s", json_path, e)
+        return ToolResult(
+            tool="ghunt", status="failed", error=f"Не вдалося розібрати результат: {e}"
+        )
     return ToolResult(tool="ghunt", status="ok", items=items)

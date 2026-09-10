@@ -81,3 +81,34 @@ async def test_unknown_query_type_raises():
         await orchestrator.run_tools_for_query(
             "x", "carrier-pigeon", blackbird_dir=Path("."), ghunt_enabled=False
         )
+
+
+async def test_one_runner_crashing_does_not_kill_the_other_results(monkeypatch):
+    """Regression test: per spec, one tool crashing must degrade to a
+    "failed" marker for that tool while the others still complete - it
+    must not blow up the whole search via an uncaught asyncio.gather
+    exception."""
+
+    async def fake_blackbird(username, blackbird_dir):
+        raise RuntimeError("boom: blackbird exploded before parsing anything")
+
+    async def fake_maigret(username, work_dir):
+        return ToolResult(tool="maigret", status="ok", items=[{"label": "x", "value": "y"}])
+
+    async def fake_sherlock(username, work_dir):
+        return ToolResult(tool="sherlock", status="ok")
+
+    monkeypatch.setattr(orchestrator, "run_blackbird", fake_blackbird)
+    monkeypatch.setattr(orchestrator, "run_maigret", fake_maigret)
+    monkeypatch.setattr(orchestrator, "run_sherlock", fake_sherlock)
+
+    results = await orchestrator.run_tools_for_query(
+        "mrmozozavr", "username", blackbird_dir=Path("."), ghunt_enabled=False
+    )
+
+    by_tool = {r.tool: r for r in results}
+    assert set(by_tool) == {"blackbird", "maigret", "sherlock"}
+    assert by_tool["blackbird"].status == "failed"
+    assert "boom" in by_tool["blackbird"].error
+    assert by_tool["maigret"].status == "ok"
+    assert by_tool["sherlock"].status == "ok"
