@@ -1,0 +1,12 @@
+{
+  "PROFILE_CONTAINER": {
+    "profile": {
+      "personId": "1234567890",
+      "names": {"PROFILE": {"fullname": "Mr Mozozavr"}},
+      "profilePhotos": {"PROFILE": {"url": "https://example.com/photo.jpg", "isDefault": false}}
+    },
+    "play_games": null,
+    "maps": {"stats": {"reviews": 3}},
+    "calendar": null
+  }
+}
