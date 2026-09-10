@@ -5,6 +5,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 data/*.sqlite3
-reports/*.html
+reports/**/*.html
 !reports/.gitkeep
 !data/.gitkeep
