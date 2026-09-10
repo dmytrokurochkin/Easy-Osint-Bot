@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSINT Звіт: {{ query }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0f0d0c;
+    --card-bg: rgba(26, 23, 21, 0.75);
+    --card-border: rgba(92, 82, 77, 0.4);
+    --text-color: #e4deda;
+    --text-muted: #8c7e75;
+  }
+  body { background-color: var(--bg-dark); color: var(--text-color); font-family: 'JetBrains Mono', monospace; }
+  .tactical-card { background: var(--card-bg); border: 1px solid var(--card-border); backdrop-filter: blur(8px); }
+  .status-ok { color: #9fd8a0; }
+  .status-bad { color: #d88a8a; }
+  .row { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid rgba(92, 82, 77, 0.15); padding: 8px 0; font-size: 13px; word-break: break-all; }
+  .row:last-child { border-bottom: none; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 sm:p-8">
+<main class="max-w-2xl w-full flex flex-col py-8">
+  <h1 class="text-3xl font-medium tracking-tight mb-2 text-white">OSINT Звіт: {{ query }}</h1>
+  <p class="text-xs text-[#a8998f] mb-8 tracking-widest font-light">
+    {{ query_type|upper }} • {{ generated_at }}
+  </p>
+
+  {% for result in results %}
+  <div class="tactical-card p-5 rounded-none mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-[10px] text-[#a8998f] tracking-wider font-semibold">
+        {{ tool_names.get(result.tool, result.tool) }}
+      </span>
+      {% if result.status == "ok" %}
+        <span class="text-[10px] status-ok">&#9679; ОК</span>
+      {% else %}
+        <span class="text-[10px] status-bad">&#9679; НЕДОСТУПНО</span>
+      {% endif %}
+    </div>
+
+    {% if result.status == "ok" %}
+      {% if result.items %}
+        <div class="space-y-1">
+          {% for item in result.items %}
+          <div class="row">
+            <div class="font-bold text-white">{{ item.label }}</div>
+            <div class="text-[#8c7e75] text-right">{{ item.value }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-[#8c7e75] text-sm">Нічого не знайдено.</p>
+      {% endif %}
+    {% else %}
+      <p class="text-[#d88a8a] text-sm">{{ result.error or "Інструмент недоступний." }}</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <footer class="w-full flex flex-col items-center mt-12">
+    <p class="text-[9px] text-[#4d443f] tracking-widest pt-2">Згенеровано OSINT-ботом</p>
+  </footer>
+</main>
+</body>
+</html>
