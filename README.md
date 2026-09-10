@@ -35,15 +35,7 @@ After installation, set the `BLACKBIRD_DIR` environment variable in your `.env` 
 BLACKBIRD_DIR=/path/to/blackbird
 ```
 
-### 3. Install Sherlock
-
-Sherlock is a username search tool. Install it using pipx (pipx is the recommended installation method by Sherlock's maintainers):
-
-```bash
-pipx install sherlock-project
-```
-
-### 4. Configure Environment Variables
+### 3. Configure Environment Variables
 
 Copy the example environment file and fill in your configuration:
 
@@ -64,7 +56,7 @@ ADMIN_ID=987654321
 BLACKBIRD_DIR=/path/to/blackbird
 ```
 
-### 5. Optional: Install GHunt (Google Intelligence)
+### 4. Optional: Install GHunt (Google Intelligence)
 
 GHunt allows gathering information about Google accounts. If you want to use this feature:
 
