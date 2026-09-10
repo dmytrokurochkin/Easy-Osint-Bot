@@ -57,6 +57,10 @@ async def cb_add_user_prompt(callback: CallbackQuery, admin_id: int, state: FSMC
 
 @router.message(AdminStates.waiting_for_new_user_id)
 async def on_new_user_id(message: Message, conn, admin_id: int, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("ID має бути текстовим повідомленням із числом. Спробуй ще раз:")
+        return
+
     text = message.text.strip()
     if not text.isdigit():
         await message.answer("ID має бути числом. Спробуй ще раз:")
