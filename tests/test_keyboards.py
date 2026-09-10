@@ -37,3 +37,17 @@ def test_users_list_menu_has_delete_button_per_user_and_add_button():
     assert "admin:deluser:111" in callback_data
     assert "admin:deluser:222" in callback_data
     assert "admin:adduser" in callback_data
+
+
+from pathlib import Path
+
+from bot.keyboards import reports_list_menu
+
+
+def test_reports_list_menu_one_button_per_report():
+    reports = [Path("20260910_120000_mrmozozavr.html"), Path("20260909_090000_user_example_com.html")]
+    markup = reports_list_menu(reports)
+    callback_data = [b.callback_data for b in _flatten(markup)]
+    assert "reports:send:0" in callback_data
+    assert "reports:send:1" in callback_data
+    assert "menu:main" in callback_data

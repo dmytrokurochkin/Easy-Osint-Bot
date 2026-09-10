@@ -32,3 +32,15 @@ def users_list_menu(user_ids: list[int]) -> InlineKeyboardMarkup:
     rows.append([InlineKeyboardButton(text="➕ Додати", callback_data="admin:adduser")])
     rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="admin:menu")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+from pathlib import Path
+
+
+def reports_list_menu(reports: list[Path]) -> InlineKeyboardMarkup:
+    rows = [
+        [InlineKeyboardButton(text=report.name, callback_data=f"reports:send:{i}")]
+        for i, report in enumerate(reports)
+    ]
+    rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)

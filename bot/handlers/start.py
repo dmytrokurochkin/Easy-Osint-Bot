@@ -1,9 +1,11 @@
+from pathlib import Path
+
 from aiogram import F, Router
 from aiogram.filters import CommandStart
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, FSInputFile, Message
 
 from bot.db import get_setting, is_authorized
-from bot.keyboards import admin_menu, main_menu
+from bot.keyboards import admin_menu, main_menu, reports_list_menu
 
 router = Router(name="start")
 
@@ -35,4 +37,37 @@ async def cb_admin_menu(callback: CallbackQuery, conn, admin_id: int) -> None:
     await callback.message.edit_text(
         "Налаштування:", reply_markup=admin_menu(access_mode, ghunt_enabled)
     )
+    await callback.answer()
+
+
+REPORTS_DIR = Path("reports")
+
+
+def _user_reports(user_id: int) -> list[Path]:
+    user_dir = REPORTS_DIR / str(user_id)
+    if not user_dir.exists():
+        return []
+    return sorted(user_dir.glob("*.html"), reverse=True)
+
+
+@router.callback_query(F.data == "reports:list")
+async def cb_reports_list(callback: CallbackQuery) -> None:
+    reports = _user_reports(callback.from_user.id)
+    if not reports:
+        await callback.answer("Звітів ще немає.", show_alert=True)
+        return
+    await callback.message.edit_text(
+        "Твої звіти:", reply_markup=reports_list_menu(reports)
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("reports:send:"))
+async def cb_reports_send(callback: CallbackQuery) -> None:
+    reports = _user_reports(callback.from_user.id)
+    index = int(callback.data.removeprefix("reports:send:"))
+    if index >= len(reports):
+        await callback.answer("Файл більше не існує.", show_alert=True)
+        return
+    await callback.message.answer_document(FSInputFile(reports[index]))
     await callback.answer()
