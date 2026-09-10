@@ -4,18 +4,17 @@ from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import CallbackQuery, FSInputFile, Message
 
-from bot.db import get_setting, is_authorized
+from bot.db import get_setting
 from bot.keyboards import admin_menu, main_menu, reports_list_menu
 
 router = Router(name="start")
 
 
 @router.message(CommandStart())
-async def cmd_start(message: Message, conn, admin_id: int) -> None:
-    authorized = await is_authorized(conn, message.from_user.id, admin_id)
-    if not authorized:
-        await message.answer("Доступ закрито. Звернись до адміністратора бота.")
-        return
+async def cmd_start(message: Message, admin_id: int) -> None:
+    # Authorization itself is enforced by AuthMiddleware (registered as an
+    # outer middleware on this router in bot/main.py), which runs before
+    # this handler and short-circuits unauthorized requests.
     is_admin = message.from_user.id == admin_id
     await message.answer("Обери дію:", reply_markup=main_menu(is_admin))
 
@@ -42,12 +41,18 @@ async def cb_admin_menu(callback: CallbackQuery, conn, admin_id: int) -> None:
 
 REPORTS_DIR = Path("reports")
 
+# Reports persist forever by design (per spec), so a heavy user's history
+# can grow without bound. Telegram's InlineKeyboardMarkup has hard limits
+# on button/row counts, so the report list must be capped rather than
+# building one row per report ever generated.
+MAX_REPORTS_SHOWN = 20
+
 
 def _user_reports(user_id: int) -> list[Path]:
     user_dir = REPORTS_DIR / str(user_id)
     if not user_dir.exists():
         return []
-    return sorted(user_dir.glob("*.html"), reverse=True)
+    return sorted(user_dir.glob("*.html"), reverse=True)[:MAX_REPORTS_SHOWN]
 
 
 @router.callback_query(F.data == "reports:list")
