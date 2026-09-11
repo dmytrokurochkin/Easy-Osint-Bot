@@ -7,11 +7,17 @@ class ConfigError(Exception):
     pass
 
 
+# blackbird is vendored directly in this repo (see blackbird/), not a
+# separately-cloned tool the user points at via .env, so its path is a
+# fixed constant, not configuration.
+BLACKBIRD_DIR = Path(__file__).resolve().parent.parent / "blackbird"
+
+
 @dataclass
 class Config:
     bot_token: str
     admin_id: int
-    blackbird_dir: Path
+    blackbird_dir: Path = BLACKBIRD_DIR
 
 
 def load_config(env: dict | None = None) -> Config:
@@ -29,12 +35,4 @@ def load_config(env: dict | None = None) -> Config:
     except ValueError:
         raise ConfigError("ADMIN_ID must be an integer Telegram user id") from None
 
-    blackbird_dir_raw = source.get("BLACKBIRD_DIR")
-    if not blackbird_dir_raw:
-        raise ConfigError("BLACKBIRD_DIR is not set in .env")
-
-    return Config(
-        bot_token=bot_token,
-        admin_id=admin_id,
-        blackbird_dir=Path(blackbird_dir_raw),
-    )
+    return Config(bot_token=bot_token, admin_id=admin_id)
