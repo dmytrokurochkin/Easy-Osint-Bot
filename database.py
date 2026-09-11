@@ -1,5 +1,7 @@
 import aiosqlite
 
+from locales import DEFAULT_LANGUAGE
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     telegram_id INTEGER PRIMARY KEY,
@@ -10,6 +12,11 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_language (
+    telegram_id INTEGER PRIMARY KEY,
+    language TEXT NOT NULL DEFAULT 'en'
 );
 """
 
@@ -74,3 +81,20 @@ async def is_authorized(conn: aiosqlite.Connection, telegram_id: int, admin_id: 
     if mode == "open":
         return True
     return telegram_id in await list_users(conn)
+
+
+async def get_user_language(conn: aiosqlite.Connection, telegram_id: int) -> str:
+    cursor = await conn.execute(
+        "SELECT language FROM user_language WHERE telegram_id = ?", (telegram_id,)
+    )
+    row = await cursor.fetchone()
+    return row[0] if row else DEFAULT_LANGUAGE
+
+
+async def set_user_language(conn: aiosqlite.Connection, telegram_id: int, language: str) -> None:
+    await conn.execute(
+        "INSERT INTO user_language (telegram_id, language) VALUES (?, ?) "
+        "ON CONFLICT(telegram_id) DO UPDATE SET language = excluded.language",
+        (telegram_id, language),
+    )
+    await conn.commit()

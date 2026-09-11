@@ -7,6 +7,8 @@ from database import (
     get_setting,
     set_setting,
     is_authorized,
+    get_user_language,
+    set_user_language,
 )
 
 
@@ -54,3 +56,26 @@ async def test_whitelist_mode_allows_added_user(conn):
     await set_setting(conn, "access_mode", "whitelist")
     await add_user(conn, telegram_id=12345, added_by=999)
     assert await is_authorized(conn, telegram_id=12345, admin_id=999) is True
+
+
+async def test_get_user_language_defaults_to_english_when_unset(conn):
+    assert await get_user_language(conn, 42) == "en"
+
+
+async def test_set_and_get_user_language_roundtrip(conn):
+    await set_user_language(conn, 42, "uk")
+    assert await get_user_language(conn, 42) == "uk"
+
+
+async def test_set_user_language_overwrites_previous_choice(conn):
+    await set_user_language(conn, 42, "uk")
+    await set_user_language(conn, 42, "pl")
+    assert await get_user_language(conn, 42) == "pl"
+
+
+async def test_user_language_is_independent_of_whitelist(conn):
+    """A user (including the admin) never needs to be in the `users`
+    whitelist table to have a language preference - they're unrelated."""
+    await set_user_language(conn, 999, "pl")
+    assert await get_user_language(conn, 999) == "pl"
+    assert 999 not in await list_users(conn)
