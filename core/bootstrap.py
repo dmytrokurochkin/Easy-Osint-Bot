@@ -52,7 +52,20 @@ def _ensure_ghunt() -> None:
     try:
         subprocess.run([sys.executable, "-m", "pipx", "install", "ghunt"], check=True)
     except subprocess.CalledProcessError:
-        print("GHunt is already installed or installation was skipped (check: pipx list).")
+        # A failed install here is NOT the same as "already installed" - the
+        # most common cause on a very new Python (e.g. 3.14 at the time of
+        # writing) is that one of GHunt's dependencies (pillow) has no
+        # prebuilt wheel yet and fails compiling from source. GHunt is
+        # optional (ghunt_enabled defaults to false), so this must never
+        # block the bot from starting - just tell the user honestly.
+        print(
+            "Could not install GHunt automatically (see the pip/uv output above "
+            "for why - often a dependency with no prebuilt wheel for this Python "
+            "version yet). GHunt is optional; the bot will run without it. To "
+            "install it yourself: pipx install ghunt --python <path to an older "
+            "Python, e.g. 3.11 or 3.12>, or check: pipx list"
+        )
+        return
     print("If this is GHunt's first run, log in manually: ghunt login")
 
 
