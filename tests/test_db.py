@@ -1,5 +1,5 @@
 import pytest
-from bot.db import (
+from database import (
     init_db,
     add_user,
     remove_user,

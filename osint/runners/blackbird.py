@@ -1,11 +1,12 @@
 import asyncio
 import json
 import logging
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
 
-from bot.osint.types import ToolResult
+from osint.types import ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,13 @@ def _parse_result_file(path: Path) -> list[dict]:
 async def run_blackbird(username: str, blackbird_dir: Path) -> ToolResult:
     date_raw = datetime.now().strftime("%m_%d_%Y")
 
+    # blackbird prints an ASCII-art banner full of block-drawing characters
+    # on every run. On Windows, when stdout is piped (no real console
+    # attached), Python falls back to the system's legacy codepage (e.g.
+    # cp1252), which can't encode those characters and crashes blackbird
+    # before it does anything. Force UTF-8 for the child process.
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+
     proc = await asyncio.create_subprocess_exec(
         sys.executable,
         "blackbird.py",
@@ -28,6 +36,7 @@ async def run_blackbird(username: str, blackbird_dir: Path) -> ToolResult:
         username,
         "--json",
         cwd=str(blackbird_dir),
+        env=env,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
@@ -45,6 +54,13 @@ async def run_blackbird(username: str, blackbird_dir: Path) -> ToolResult:
         / f"{username}_{date_raw}_blackbird.json"
     )
     if not result_path.exists():
+        # blackbird only writes the JSON file when it found at least one
+        # account (see src/modules/export/json.py: it's called behind
+        # `if config.json and config.usernameFoundAccounts`). A clean exit
+        # with no file means "zero matches", not a failure — only a
+        # non-zero exit code means blackbird actually crashed.
+        if proc.returncode == 0:
+            return ToolResult(tool="blackbird", status="ok", items=[])
         logger.warning(
             "blackbird failed: no result file; stderr=%r stdout=%r",
             stderr.decode(errors="replace")[:500],

@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from bot.osint.runners import maigret
+from osint.runners import maigret
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

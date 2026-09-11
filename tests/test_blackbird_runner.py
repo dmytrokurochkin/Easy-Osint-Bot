@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from bot.osint.runners import blackbird
+from osint.runners import blackbird
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -29,8 +29,22 @@ async def test_run_blackbird_parses_result_file(tmp_path, fake_subprocess):
     assert len(result.items) == 2
 
 
-async def test_run_blackbird_missing_result_file_is_failed(tmp_path, fake_subprocess):
+async def test_run_blackbird_missing_result_file_clean_exit_is_zero_results(
+    tmp_path, fake_subprocess
+):
+    # blackbird only writes its JSON file when it found at least one
+    # account; a clean (returncode 0) run with no file means zero matches,
+    # not a failure.
     fake_subprocess(returncode=0)
+    result = await blackbird.run_blackbird("nobody", tmp_path)
+    assert result.status == "ok"
+    assert result.items == []
+
+
+async def test_run_blackbird_missing_result_file_nonzero_exit_is_failed(
+    tmp_path, fake_subprocess
+):
+    fake_subprocess(returncode=1)
     result = await blackbird.run_blackbird("nobody", tmp_path)
     assert result.status == "failed"
     assert result.error

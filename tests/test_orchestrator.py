@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from bot.osint import orchestrator
-from bot.osint.types import ToolResult
+from osint import orchestrator
+from osint.types import ToolResult
 
 
 async def test_phone_query_calls_only_phone_runner(monkeypatch):

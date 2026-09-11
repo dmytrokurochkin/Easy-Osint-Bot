@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from aiogram.types import CallbackQuery, Message, User
 
-from bot.db import add_user, init_db
-from bot.middlewares import AuthMiddleware
+from database import add_user, init_db
+from middlewares.auth import AuthMiddleware
 
 
 @pytest.fixture
@@ -83,7 +83,7 @@ async def test_removed_user_is_reauthorized_out_on_next_request(conn):
     whitelisted and then removed by the admin must be blocked on their
     very next request (e.g. pressing a button on an old cached message),
     not just on their next /start."""
-    from bot.db import remove_user
+    from database import remove_user
 
     await add_user(conn, telegram_id=42, added_by=1)
     handler = AsyncMock(return_value="handled")

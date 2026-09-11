@@ -3,7 +3,7 @@ from pathlib import Path
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def main_menu(is_admin: bool) -> InlineKeyboardMarkup:
+def get_main_menu_keyboard(is_admin: bool) -> InlineKeyboardMarkup:
     rows = [
         [InlineKeyboardButton(text="🔍 Новий пошук", callback_data="search:new")],
         [InlineKeyboardButton(text="📄 Мої звіти", callback_data="reports:list")],
@@ -13,7 +13,7 @@ def main_menu(is_admin: bool) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def admin_menu(access_mode: str, ghunt_enabled: bool) -> InlineKeyboardMarkup:
+def get_admin_menu_keyboard(access_mode: str, ghunt_enabled: bool) -> InlineKeyboardMarkup:
     mode_label = "🔓 Режим: Відкритий" if access_mode == "open" else "🔒 Режим: Whitelist"
     ghunt_label = "GHunt: 🟢 Увімкнено" if ghunt_enabled else "GHunt: 🔴 Вимкнено"
     return InlineKeyboardMarkup(
@@ -26,7 +26,7 @@ def admin_menu(access_mode: str, ghunt_enabled: bool) -> InlineKeyboardMarkup:
     )
 
 
-def users_list_menu(user_ids: list[int]) -> InlineKeyboardMarkup:
+def get_users_list_keyboard(user_ids: list[int]) -> InlineKeyboardMarkup:
     rows = [
         [InlineKeyboardButton(text=f"❌ {uid}", callback_data=f"admin:deluser:{uid}")]
         for uid in user_ids
@@ -36,7 +36,7 @@ def users_list_menu(user_ids: list[int]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def reports_list_menu(reports: list[Path]) -> InlineKeyboardMarkup:
+def get_reports_list_keyboard(reports: list[Path]) -> InlineKeyboardMarkup:
     rows = [
         [InlineKeyboardButton(text=report.name, callback_data=f"reports:send:{i}")]
         for i, report in enumerate(reports)

@@ -2,7 +2,7 @@ import asyncio
 import logging
 from pathlib import Path
 
-from bot.osint.types import ToolResult
+from osint.types import ToolResult
 
 logger = logging.getLogger(__name__)
 

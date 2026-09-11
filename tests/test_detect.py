@@ -1,5 +1,5 @@
 import pytest
-from bot.osint.detect import detect_query_type
+from osint.detect import detect_query_type
 
 
 @pytest.mark.parametrize(

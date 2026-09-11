@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from bot.osint.runners import sherlock
+from osint.runners import sherlock
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

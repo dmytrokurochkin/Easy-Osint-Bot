@@ -5,74 +5,64 @@ A Telegram bot for performing OSINT operations using Blackbird, Sherlock, and GH
 ## Prerequisites
 
 - **Python 3.11 or later**
-- **git** (to clone repositories)
-- **pipx** (for installing command-line tools globally)
+- **git** (to clone blackbird)
 
-Ensure these are installed and available in your PATH before proceeding.
+`pipx` is bootstrapped automatically by `scripts/setup.py` if missing. No Docker needed.
 
 ## Installation
 
-### 1. Install Python Dependencies
+### Quick start (recommended)
 
-Install the bot's Python dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Install and Configure Blackbird
-
-Blackbird is a OSINT tool that must be cloned and installed separately:
+One command installs everything (Python deps, blackbird, GHunt) and asks for `BOT_TOKEN`/`ADMIN_ID` interactively:
 
 ```bash
-git clone https://github.com/p1ngul1n0/blackbird
-pip install -r blackbird/requirements.txt
+python scripts/setup.py
 ```
 
-After installation, set the `BLACKBIRD_DIR` environment variable in your `.env` file to the absolute path of the cloned blackbird directory. For example:
+Safe to re-run — it skips anything already installed, and never overwrites an existing `.env`.
 
-```
-BLACKBIRD_DIR=/path/to/blackbird
-```
+`ghunt login` is the one step that stays manual no matter what (it needs a one-time browser-extension flow) — the script prints a reminder for it at the end.
 
-### 3. Configure Environment Variables
+### Manual install
 
-Copy the example environment file and fill in your configuration:
+If you'd rather do it by hand, or the script fails on your system:
 
-```bash
-cp .env.example .env
-```
+1. **Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Edit `.env` and provide the following values:
+2. **Blackbird** (not a pip package — clone and install separately):
+   ```bash
+   git clone https://github.com/p1ngul1n0/blackbird
+   pip install -r blackbird/requirements.txt
+   ```
 
-- **BOT_TOKEN**: Your Telegram bot token. Get this from [@BotFather](https://t.me/botfather) on Telegram.
-- **ADMIN_ID**: Your Telegram numeric user ID. You can get this from [@userinfobot](https://t.me/userinfobot) on Telegram.
+3. **`.env`:** copy `.env.example` to `.env` and fill in:
+   - **BOT_TOKEN** — from [@BotFather](https://t.me/botfather)
+   - **ADMIN_ID** — your numeric Telegram ID, from [@userinfobot](https://t.me/userinfobot)
+   - **BLACKBIRD_DIR** — absolute path to the blackbird clone from step 2
 
-Example `.env`:
+   Example:
+   ```
+   BOT_TOKEN=1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij
+   ADMIN_ID=987654321
+   BLACKBIRD_DIR=/path/to/blackbird
+   ```
 
-```
-BOT_TOKEN=1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij
-ADMIN_ID=987654321
-BLACKBIRD_DIR=/path/to/blackbird
-```
-
-### 4. Optional: Install GHunt (Google Intelligence)
-
-GHunt allows gathering information about Google accounts. If you want to use this feature:
-
-```bash
-pipx install ghunt
-ghunt login
-```
-
-Follow the GHunt Companion browser extension instructions when prompted. After completing the login flow, GHunt features will be available in the bot via the GHunt toggle in the settings menu.
+4. **Optional: GHunt** (email → Google account recon):
+   ```bash
+   pipx install ghunt
+   ghunt login
+   ```
+   Follow the GHunt Companion browser extension instructions when prompted. Afterwards, enable it in the bot via the GHunt toggle in the settings menu.
 
 ## Running the Bot
 
 Start the bot with:
 
 ```bash
-python -m bot.main
+python main.py
 ```
 
 The bot will log its startup and begin polling Telegram for updates. You should see output similar to:

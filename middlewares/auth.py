@@ -5,7 +5,7 @@ from typing import Any
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message, TelegramObject
 
-from bot.db import is_authorized
+from database import is_authorized
 
 logger = logging.getLogger(__name__)
 

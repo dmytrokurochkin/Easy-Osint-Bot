@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from bot.osint.types import ToolResult
-from bot.report.render import render_report
+from osint.types import ToolResult
+from report.render import render_report
 
 
 def test_render_report_creates_html_file(tmp_path):

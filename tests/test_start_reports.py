@@ -1,4 +1,4 @@
-from bot.handlers import start
+from handlers import start
 
 
 def test_user_reports_is_capped_at_max_reports_shown(tmp_path, monkeypatch):

@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from bot.config import load_config, ConfigError, Config
+from core.config import load_config, ConfigError, Config
 
 
 def test_load_config_success():

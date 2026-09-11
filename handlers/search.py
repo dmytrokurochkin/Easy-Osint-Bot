@@ -6,15 +6,15 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, FSInputFile, Message
 
-from bot.db import get_setting
-from bot.keyboards import main_menu
-from bot.osint.detect import detect_query_type
-from bot.osint.orchestrator import run_tools_for_query
-from bot.report.render import render_report
+from database import get_setting
+from keyboards.inline import get_main_menu_keyboard
+from osint.detect import detect_query_type
+from osint.orchestrator import run_tools_for_query
+from report.render import render_report
 
 logger = logging.getLogger(__name__)
 
-router = Router(name="search")
+search_router = Router(name="search")
 
 REPORTS_DIR = Path("reports")
 
@@ -28,7 +28,7 @@ class SearchStates(StatesGroup):
     waiting_for_query = State()
 
 
-@router.callback_query(F.data == "search:new")
+@search_router.callback_query(F.data == "search:new")
 async def cb_search_new(callback: CallbackQuery, state: FSMContext) -> None:
     if callback.from_user.id in active_requests:
         await callback.answer("Зачекай, попередній запит ще виконується.", show_alert=True)
@@ -38,7 +38,7 @@ async def cb_search_new(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
 
-@router.message(SearchStates.waiting_for_query)
+@search_router.message(SearchStates.waiting_for_query)
 async def on_query(
     message: Message, conn, admin_id: int, blackbird_dir: Path, state: FSMContext
 ) -> None:
@@ -79,4 +79,4 @@ async def on_query(
         active_requests.discard(user_id)
         await state.clear()
         is_admin = user_id == admin_id
-        await message.answer("Обери дію:", reply_markup=main_menu(is_admin))
+        await message.answer("Обери дію:", reply_markup=get_main_menu_keyboard(is_admin))

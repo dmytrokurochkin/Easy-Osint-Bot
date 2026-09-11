@@ -4,13 +4,13 @@ import tempfile
 from pathlib import Path
 from typing import Coroutine
 
-from bot.osint.runners.blackbird import run_blackbird
-from bot.osint.runners.ghunt import run_ghunt
-from bot.osint.runners.holehe import run_holehe
-from bot.osint.runners.maigret import run_maigret
-from bot.osint.runners.phone import get_phone_result
-from bot.osint.runners.sherlock import run_sherlock
-from bot.osint.types import ToolResult
+from osint.runners.blackbird import run_blackbird
+from osint.runners.ghunt import run_ghunt
+from osint.runners.holehe import run_holehe
+from osint.runners.maigret import run_maigret
+from osint.runners.phone import get_phone_result
+from osint.runners.sherlock import run_sherlock
+from osint.types import ToolResult
 
 
 async def _gather_tool_results(tasks: list[tuple[str, Coroutine]]) -> list[ToolResult]:

@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from bot.osint.runners import ghunt
+from osint.runners import ghunt
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

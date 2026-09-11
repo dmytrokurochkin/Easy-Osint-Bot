@@ -1,4 +1,4 @@
-from bot.osint.runners.phone import get_phone_result
+from osint.runners.phone import get_phone_result
 
 
 def test_valid_ukrainian_mobile_number():

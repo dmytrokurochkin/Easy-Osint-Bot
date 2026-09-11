@@ -1,7 +1,7 @@
 import phonenumbers
 from phonenumbers import carrier, geocoder, timezone
 
-from bot.osint.types import ToolResult
+from osint.types import ToolResult
 
 LINE_TYPE_NAMES = {
     phonenumbers.PhoneNumberType.MOBILE: "mobile",

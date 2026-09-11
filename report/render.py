@@ -3,7 +3,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from bot.osint.types import ToolResult
+from osint.types import ToolResult
 
 TEMPLATE_DIR = Path(__file__).parent
 

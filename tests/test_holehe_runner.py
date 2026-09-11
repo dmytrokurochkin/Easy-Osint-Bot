@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from bot.osint.runners import holehe
+from osint.runners import holehe
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

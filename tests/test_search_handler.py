@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 from aiogram.types import Message, User
 
-from bot.db import init_db
-from bot.handlers import search
+from database import init_db
+from handlers import search
 
 
 def _fake_message(user_id: int, text: str | None):

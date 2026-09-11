@@ -1,9 +1,11 @@
 import asyncio
 import csv
 import logging
+import os
+import sys
 from pathlib import Path
 
-from bot.osint.types import ToolResult
+from osint.types import ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +24,23 @@ def _parse_result_file(path: Path) -> list[dict]:
 
 
 async def run_sherlock(username: str, work_dir: Path) -> ToolResult:
+    # Same reasoning as maigret's runner: invoke via `-m` on this bot's own
+    # interpreter instead of the bare "sherlock" command, which depends on
+    # a Scripts/ directory that may not be on PATH (WinError 2 on Windows).
+    # PYTHONIOENCODING=utf-8 pre-empts the same Windows-console Unicode
+    # crash already confirmed for blackbird and maigret.
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
     proc = await asyncio.create_subprocess_exec(
-        "sherlock",
+        sys.executable,
+        "-m",
+        "sherlock_project",
         username,
         "--csv",
         "--folderoutput",
         str(work_dir),
         "--timeout",
         "60",
+        env=env,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
