@@ -5,6 +5,7 @@ from core.bootstrap import ensure_ready
 from core.loader import create_bot, create_dispatcher
 from database import init_db
 from handlers.admin import admin_router
+from handlers.language import language_router
 from handlers.search import search_router
 from handlers.start import start_router
 from middlewares.auth import AuthMiddleware
@@ -22,13 +23,14 @@ async def main() -> None:
     # /start - see middlewares/auth.py::AuthMiddleware for why this is
     # required (old main-menu messages keep working buttons forever).
     auth_middleware = AuthMiddleware()
-    for router in (start_router, admin_router, search_router):
+    for router in (start_router, admin_router, search_router, language_router):
         router.message.outer_middleware(auth_middleware)
         router.callback_query.outer_middleware(auth_middleware)
 
     dispatcher.include_router(start_router)
     dispatcher.include_router(admin_router)
     dispatcher.include_router(search_router)
+    dispatcher.include_router(language_router)
 
     try:
         await dispatcher.start_polling(
