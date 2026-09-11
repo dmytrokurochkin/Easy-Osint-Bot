@@ -1,6 +1,11 @@
 .worktrees/
 .superpowers/
 .env
+.claude/
+CLAUDE.md
+PRODUCT.md
+DESIGN.md
+DESIGN.md.sidecar.json
 blackbird/logs/
 blackbird/results/
 blackbird/__pycache__/
