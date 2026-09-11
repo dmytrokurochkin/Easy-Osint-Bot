@@ -1,7 +1,11 @@
 .worktrees/
 .superpowers/
 .env
-blackbird/
+blackbird/logs/
+blackbird/results/
+blackbird/__pycache__/
+blackbird/**/__pycache__/
+blackbird/.env
 __pycache__/
 *.pyc
 .pytest_cache/
