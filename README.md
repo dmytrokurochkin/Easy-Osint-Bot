@@ -1,94 +1,49 @@
+English · [Українська](README.uk.md) · [Polski](README.pl.md)
+
 # Easy OSINT Telegram Bot
 
-A Telegram bot for performing OSINT operations using Blackbird, Sherlock, and GHunt.
+A Telegram bot for OSINT lookups by username, email, or phone number, using Blackbird, Maigret, Sherlock, Holehe, and GHunt. English / Ukrainian / Polish — every user picks their own language from the bot's menu.
 
-## Prerequisites
+## Requirements
 
 - **Python 3.11 or later**
-- **git** (to clone blackbird)
 
-`pipx` is bootstrapped automatically by `scripts/setup.py` if missing. No Docker needed.
+That's it. Blackbird is vendored directly in this repo (no separate clone), and every other dependency is installed automatically on first run.
 
-## Installation
-
-### Quick start (recommended)
-
-One command installs everything (Python deps, blackbird, GHunt) and asks for `BOT_TOKEN`/`ADMIN_ID` interactively:
-
-```bash
-python scripts/setup.py
-```
-
-Safe to re-run — it skips anything already installed, and never overwrites an existing `.env`.
-
-`ghunt login` is the one step that stays manual no matter what (it needs a one-time browser-extension flow) — the script prints a reminder for it at the end.
-
-### Manual install
-
-If you'd rather do it by hand, or the script fails on your system:
-
-1. **Python dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Blackbird** (not a pip package — clone and install separately):
-   ```bash
-   git clone https://github.com/p1ngul1n0/blackbird
-   pip install -r blackbird/requirements.txt
-   ```
-
-3. **`.env`:** copy `.env.example` to `.env` and fill in:
-   - **BOT_TOKEN** — from [@BotFather](https://t.me/botfather)
-   - **ADMIN_ID** — your numeric Telegram ID, from [@userinfobot](https://t.me/userinfobot)
-   - **BLACKBIRD_DIR** — absolute path to the blackbird clone from step 2
-
-   Example:
-   ```
-   BOT_TOKEN=1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij
-   ADMIN_ID=987654321
-   BLACKBIRD_DIR=/path/to/blackbird
-   ```
-
-4. **Optional: GHunt** (email → Google account recon):
-   ```bash
-   pipx install ghunt
-   ghunt login
-   ```
-   Follow the GHunt Companion browser extension instructions when prompted. Afterwards, enable it in the bot via the GHunt toggle in the settings menu.
-
-## Running the Bot
-
-Start the bot with:
+## Running the bot
 
 ```bash
 python main.py
 ```
 
-The bot will log its startup and begin polling Telegram for updates. You should see output similar to:
+The first run will:
 
-```
-INFO:root:...
-INFO:aiogram.dispatcher:Dispatcher started polling
-```
+1. Install any missing Python dependencies (`pip install -r requirements.txt`).
+2. Ask for your `BOT_TOKEN` (from [@BotFather](https://t.me/botfather)) and `ADMIN_ID` (your numeric Telegram ID, from [@userinfobot](https://t.me/userinfobot)) if `.env` doesn't exist yet, and write it.
+3. Install GHunt via `pipx` if it isn't already installed.
 
-## First Use
+Every later run skips whatever is already done — `python main.py` is always the only command you need.
 
-1. Open Telegram and message your bot by finding it through search or using a direct link (e.g., `https://t.me/YourBotUsername`).
+`ghunt login` is the one step that stays manual no matter what — it needs a one-time browser-extension flow. Run it once if you want the GHunt (email → Google account recon) tool enabled; toggle it on afterwards in the bot's settings menu.
 
-2. Send the `/start` command to initialize the bot.
+## First use
 
-3. **As the bot administrator (the user ID you set as ADMIN_ID):**
-   - You have full access to all bot features immediately.
-   - To add other users, go to "⚙️ Налаштування" (Settings) → "👥 Користувачі" (Users) → "➕ Додати" (Add).
-   - Alternatively, switch the bot to "🔓 Режим: Відкритий" (Open Mode) to allow anyone to use it without explicit approval.
+1. Open Telegram and message your bot.
+2. Send `/start`.
+3. **As the administrator** (the user ID you set as `ADMIN_ID`): you have full access immediately. Add other users via "⚙️ Settings" → "👥 Users" → "➕ Add", or switch to "🔓 Mode: Open" to let anyone use it without explicit approval.
+4. Pick your language any time via the "🌐 <language>" button on the main menu — it's saved per Telegram user.
 
-## Running Tests
-
-Execute the test suite to verify the bot components are working correctly:
+## Running tests
 
 ```bash
+pip install -r requirements-dev.txt
 pytest
 ```
 
-All tests should pass before deploying the bot to production.
+## What `python main.py` does under the hood
+
+See `core/bootstrap.py` — it's a short, readable file. In short: check for missing pip packages and install them, check for `.env` and prompt for it if missing, check for GHunt and install it via pipx if missing. Every step is idempotent (safe to run again).
+
+## License
+
+Blackbird (vendored in `blackbird/`) is licensed under GPLv3 — see `blackbird/LICENSE`. The rest of this project is licensed separately (see `LICENSE` at the repo root, if present) — that license does not apply to `blackbird/`.
