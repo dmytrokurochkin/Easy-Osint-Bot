@@ -1,9 +1,7 @@
 import asyncio
 import logging
 
-from dotenv import load_dotenv
-
-from core.config import load_config
+from core.bootstrap import ensure_ready
 from core.loader import create_bot, create_dispatcher
 from database import init_db
 from handlers.admin import admin_router
@@ -14,8 +12,7 @@ from middlewares.auth import AuthMiddleware
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    load_dotenv()
-    config = load_config()
+    config = ensure_ready()
 
     conn = await init_db("data/bot.sqlite3")
     bot = create_bot(config)
