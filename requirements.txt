@@ -6,3 +6,13 @@ maigret
 holehe
 sherlock-project
 Jinja2>=3.1
+# blackbird (vendored in blackbird/) runs as a subprocess under this same
+# interpreter rather than as a pip package - these are its own runtime
+# dependencies, merged in so one `pip install -r requirements.txt` covers
+# everything.
+aiohttp>=3.12
+rich>=14.0
+chardet>=5.2
+requests>=2.32
+reportlab>=4.4
+pillow>=11.0
