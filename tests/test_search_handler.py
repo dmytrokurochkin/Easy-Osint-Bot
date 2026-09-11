@@ -36,11 +36,11 @@ async def test_on_query_with_non_text_message_does_not_crash():
         state = _fake_state()
 
         await search.on_query(
-            message, conn=conn, admin_id=1, blackbird_dir=Path("."), state=state
+            message, conn=conn, admin_id=1, blackbird_dir=Path("."), state=state, lang="en"
         )
 
         message.answer.assert_awaited_once_with(
-            "Будь ласка, надішли текстове повідомлення."
+            "Please send a text message."
         )
         assert 42 not in search.active_requests
     finally:
@@ -64,11 +64,11 @@ async def test_on_query_reports_failure_on_status_message_and_still_cleans_up(mo
         state = _fake_state()
 
         await search.on_query(
-            message, conn=conn, admin_id=1, blackbird_dir=Path("."), state=state
+            message, conn=conn, admin_id=1, blackbird_dir=Path("."), state=state, lang="en"
         )
 
         status_message.edit_text.assert_awaited_once_with(
-            "❌ Сталася помилка під час виконання пошуку."
+            "❌ An error occurred while running the search."
         )
         message.answer_document.assert_not_called()
         assert 42 not in search.active_requests
