@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="{{ lang }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OSINT Звіт: {{ query }}</title>
+<title>{{ report_title }}</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,9 +26,9 @@
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 sm:p-8">
 <main class="max-w-2xl w-full flex flex-col py-8">
-  <h1 class="text-3xl font-medium tracking-tight mb-2 text-white">OSINT Звіт: {{ query }}</h1>
+  <h1 class="text-3xl font-medium tracking-tight mb-2 text-white">{{ report_title }}</h1>
   <p class="text-xs text-[#a8998f] mb-8 tracking-widest font-light">
-    {{ query_type|upper }} • {{ generated_at }}
+    {{ query_type_label|upper }} • {{ generated_at }}
   </p>
 
   {% for result in results %}
@@ -38,9 +38,9 @@
         {{ tool_names.get(result.tool, result.tool) }}
       </span>
       {% if result.status == "ok" %}
-        <span class="text-[10px] status-ok">&#9679; ОК</span>
+        <span class="text-[10px] status-ok">&#9679; {{ status_ok_label }}</span>
       {% else %}
-        <span class="text-[10px] status-bad">&#9679; НЕДОСТУПНО</span>
+        <span class="text-[10px] status-bad">&#9679; {{ status_unavailable_label }}</span>
       {% endif %}
     </div>
 
@@ -55,16 +55,16 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="text-[#8c7e75] text-sm">Нічого не знайдено.</p>
+        <p class="text-[#8c7e75] text-sm">{{ nothing_found_label }}</p>
       {% endif %}
     {% else %}
-      <p class="text-[#d88a8a] text-sm">{{ result.error or "Інструмент недоступний." }}</p>
+      <p class="text-[#d88a8a] text-sm">{{ result.error or tool_unavailable_label }}</p>
     {% endif %}
   </div>
   {% endfor %}
 
   <footer class="w-full flex flex-col items-center mt-12">
-    <p class="text-[9px] text-[#4d443f] tracking-widest pt-2">Згенеровано OSINT-ботом</p>
+    <p class="text-[9px] text-[#4d443f] tracking-widest pt-2">{{ footer_label }}</p>
   </footer>
 </main>
 </body>
