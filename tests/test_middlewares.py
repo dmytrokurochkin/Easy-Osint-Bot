@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from aiogram.types import CallbackQuery, Message, User
 
-from database import add_user, init_db
+from database import add_user, init_db, set_user_language
 from middlewares.auth import AuthMiddleware
 
 
@@ -36,7 +36,7 @@ async def test_unauthorized_callback_is_blocked_and_handler_not_called(conn):
     result = await AuthMiddleware()(handler, callback, data)
 
     handler.assert_not_called()
-    callback.answer.assert_awaited_once_with("Доступ закрито.", show_alert=True)
+    callback.answer.assert_awaited_once_with("Access denied.", show_alert=True)
     assert result is None
 
 
@@ -48,10 +48,19 @@ async def test_unauthorized_message_is_blocked_and_handler_not_called(conn):
     result = await AuthMiddleware()(handler, message, data)
 
     handler.assert_not_called()
-    message.answer.assert_awaited_once_with(
-        "Доступ закрито. Звернись до адміністратора бота."
-    )
+    message.answer.assert_awaited_once_with("Access denied. Contact the bot administrator.")
     assert result is None
+
+
+async def test_unauthorized_rejection_is_localized(conn):
+    await set_user_language(conn, 42, "uk")
+    handler = AsyncMock()
+    callback = _fake_callback(user_id=42)
+    data = {"conn": conn, "admin_id": 1, "event_from_user": callback.from_user}
+
+    await AuthMiddleware()(handler, callback, data)
+
+    callback.answer.assert_awaited_once_with("Доступ закрито.", show_alert=True)
 
 
 async def test_admin_is_always_authorized_and_handler_runs(conn):
@@ -78,6 +87,27 @@ async def test_whitelisted_user_is_authorized_and_handler_runs(conn):
     assert result == "handled"
 
 
+async def test_lang_is_injected_into_data_defaulting_to_english(conn):
+    handler = AsyncMock(return_value="handled")
+    callback = _fake_callback(user_id=1)
+    data = {"conn": conn, "admin_id": 1, "event_from_user": callback.from_user}
+
+    await AuthMiddleware()(handler, callback, data)
+
+    assert data["lang"] == "en"
+
+
+async def test_lang_reflects_users_saved_choice(conn):
+    await set_user_language(conn, 1, "pl")
+    handler = AsyncMock(return_value="handled")
+    callback = _fake_callback(user_id=1)
+    data = {"conn": conn, "admin_id": 1, "event_from_user": callback.from_user}
+
+    await AuthMiddleware()(handler, callback, data)
+
+    assert data["lang"] == "pl"
+
+
 async def test_removed_user_is_reauthorized_out_on_next_request(conn):
     """Regression test for the core finding: a user who was once
     whitelisted and then removed by the admin must be blocked on their
@@ -90,18 +120,15 @@ async def test_removed_user_is_reauthorized_out_on_next_request(conn):
     callback = _fake_callback(user_id=42)
     data = {"conn": conn, "admin_id": 1, "event_from_user": callback.from_user}
 
-    # First request succeeds while whitelisted.
     result = await AuthMiddleware()(handler, callback, data)
     assert result == "handled"
 
-    # Admin removes the user via the admin panel.
     await remove_user(conn, 42)
 
-    # The same (old, cached) button press must now be blocked.
     handler.reset_mock()
     callback.answer.reset_mock()
     result = await AuthMiddleware()(handler, callback, data)
 
     handler.assert_not_called()
-    callback.answer.assert_awaited_once_with("Доступ закрито.", show_alert=True)
+    callback.answer.assert_awaited_once_with("Access denied.", show_alert=True)
     assert result is None

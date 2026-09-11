@@ -5,24 +5,24 @@ from typing import Any
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message, TelegramObject
 
-from database import is_authorized
+from database import get_user_language, is_authorized
+from locales import get_text
 
 logger = logging.getLogger(__name__)
-
-UNAUTHORIZED_MESSAGE = "Доступ закрито. Звернись до адміністратора бота."
-UNAUTHORIZED_CALLBACK_ALERT = "Доступ закрито."
 
 
 class AuthMiddleware(BaseMiddleware):
     """Outer middleware that re-checks whitelist/admin authorization on every
-    event, not just on /start.
+    event, not just on /start, and loads the requesting user's saved
+    language preference into `data["lang"]` for every downstream handler.
 
-    Without this, a user who was whitelisted once (or used the bot while
-    access_mode was "open") keeps a main-menu message in their chat with
-    live inline buttons. Telegram lets those buttons be pressed forever,
-    regardless of what happens to the user's authorization afterwards - so
-    without a re-check here, removing a user via the admin panel (or
-    flipping access_mode back to "whitelist") would be purely cosmetic.
+    Without the auth re-check, a user who was whitelisted once (or used the
+    bot while access_mode was "open") keeps a main-menu message in their
+    chat with live inline buttons. Telegram lets those buttons be pressed
+    forever, regardless of what happens to the user's authorization
+    afterwards - so without a re-check here, removing a user via the admin
+    panel (or flipping access_mode back to "whitelist") would be purely
+    cosmetic.
 
     Must be registered as an OUTER middleware (not an inner/handler
     middleware) so it runs before FSM state/data is loaded and before the
@@ -49,6 +49,9 @@ class AuthMiddleware(BaseMiddleware):
             # event types.
             return await handler(event, data)
 
+        lang = await get_user_language(conn, user.id)
+        data["lang"] = lang
+
         authorized = await is_authorized(conn, user.id, admin_id)
         if authorized:
             return await handler(event, data)
@@ -56,7 +59,7 @@ class AuthMiddleware(BaseMiddleware):
         logger.info("Blocked unauthorized access attempt by user_id=%s", user.id)
 
         if isinstance(event, CallbackQuery):
-            await event.answer(UNAUTHORIZED_CALLBACK_ALERT, show_alert=True)
+            await event.answer(get_text(lang, "unauthorized_callback"), show_alert=True)
         elif isinstance(event, Message):
-            await event.answer(UNAUTHORIZED_MESSAGE)
+            await event.answer(get_text(lang, "unauthorized_message"))
         return None
