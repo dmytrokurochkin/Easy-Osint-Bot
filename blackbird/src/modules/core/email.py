@@ -100,6 +100,7 @@ from rich.live import Live
 async def fetchResults(email, config):
     data = readList("email", config)
     originalEmail = email
+    # Locally modified for Windows compatibility - see blackbird/PATCHES.md
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(resolver=aiohttp.ThreadedResolver())) as session:
         tasks = []
         semaphore = asyncio.Semaphore(config.max_concurrent_requests)

@@ -2,18 +2,19 @@ import asyncio
 import logging
 
 from core.bootstrap import ensure_ready
-from core.loader import create_bot, create_dispatcher
-from database import init_db
-from handlers.admin import admin_router
-from handlers.language import language_router
-from handlers.search import search_router
-from handlers.start import start_router
-from middlewares.auth import AuthMiddleware
 
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
     config = ensure_ready()
+
+    from core.loader import create_bot, create_dispatcher
+    from database import init_db
+    from handlers.admin import admin_router
+    from handlers.language import language_router
+    from handlers.search import search_router
+    from handlers.start import start_router
+    from middlewares.auth import AuthMiddleware
 
     conn = await init_db("data/bot.sqlite3")
     bot = create_bot(config)

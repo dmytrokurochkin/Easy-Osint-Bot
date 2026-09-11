@@ -46,4 +46,4 @@ See `core/bootstrap.py` — it's a short, readable file. In short: check for mis
 
 ## License
 
-Blackbird (vendored in `blackbird/`) is licensed under GPLv3 — see `blackbird/LICENSE`. The rest of this project is licensed separately (see `LICENSE` at the repo root, if present) — that license does not apply to `blackbird/`.
+Blackbird (vendored in `blackbird/`) is licensed under GPLv3 — see `blackbird/docs/LICENSE`. The rest of this project is licensed separately (see `LICENSE` at the repo root, if present) — that license does not apply to `blackbird/`.

@@ -4,8 +4,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 from core.config import Config, load_config
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -23,7 +21,7 @@ def _ensure_dependencies() -> None:
     missing = [name for name in REQUIRED_MODULES if importlib.util.find_spec(name) is None]
     if not missing:
         return
-    print(f"Встановлюю відсутні залежності: {', '.join(missing)}...")
+    print(f"Installing missing dependencies: {', '.join(missing)}...")
     subprocess.run(
         [sys.executable, "-m", "pip", "install", "-r", str(REQUIREMENTS_PATH)],
         check=True,
@@ -33,29 +31,35 @@ def _ensure_dependencies() -> None:
 def _ensure_env_file() -> None:
     if ENV_PATH.exists():
         return
-    print("Файл .env не знайдено. Потрібні два значення з Telegram:")
-    bot_token = input("BOT_TOKEN (від @BotFather, https://t.me/botfather): ").strip()
-    admin_id = input("ADMIN_ID (твій числовий ID від @userinfobot, https://t.me/userinfobot): ").strip()
+    print("No .env file found. Two values from Telegram are needed:")
+    bot_token = input("BOT_TOKEN (from @BotFather, https://t.me/botfather): ").strip()
+    admin_id = input("ADMIN_ID (your numeric Telegram ID from @userinfobot, https://t.me/userinfobot): ").strip()
     ENV_PATH.write_text(f"BOT_TOKEN={bot_token}\nADMIN_ID={admin_id}\n", encoding="utf-8")
-    print(f"Записано {ENV_PATH}")
+    print(f"Wrote {ENV_PATH}")
 
 
 def _ensure_ghunt() -> None:
     if shutil.which("ghunt") is not None:
         return
-    print("GHunt не знайдено — встановлюю через pipx...")
+    print("GHunt not found — installing via pipx...")
     if shutil.which("pipx") is None:
         try:
             subprocess.run([sys.executable, "-m", "pip", "install", "--user", "pipx"], check=True)
             subprocess.run([sys.executable, "-m", "pipx", "ensurepath"], check=True)
         except subprocess.CalledProcessError:
-            print("Не вдалося автоматично встановити pipx. Постав вручну: pip install --user pipx")
+            print("Could not install pipx automatically. Install it manually: pip install --user pipx")
             return
     try:
         subprocess.run([sys.executable, "-m", "pipx", "install", "ghunt"], check=True)
     except subprocess.CalledProcessError:
-        print("GHunt вже встановлений або встановлення пропущено (перевір: pipx list).")
-    print("Якщо це перший запуск GHunt — постав логін вручну: ghunt login")
+        print("GHunt is already installed or installation was skipped (check: pipx list).")
+    print("If this is GHunt's first run, log in manually: ghunt login")
+
+
+def _load_env() -> None:
+    from dotenv import load_dotenv
+
+    load_dotenv()
 
 
 def ensure_ready() -> Config:
@@ -63,6 +67,6 @@ def ensure_ready() -> Config:
     already satisfied, so a second/third/nth run is nearly instant."""
     _ensure_dependencies()
     _ensure_env_file()
-    load_dotenv()
+    _load_env()
     _ensure_ghunt()
     return load_config()

@@ -120,6 +120,7 @@ from rich.console import Group
 from rich.text import Text
 
 async def fetchResults(username, config):
+    # Locally modified for Windows compatibility - see blackbird/PATCHES.md
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(resolver=aiohttp.ThreadedResolver())) as session:
         semaphore = asyncio.Semaphore(config.max_concurrent_requests)
         total_sites = len(config.username_sites)

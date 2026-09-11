@@ -46,4 +46,4 @@ Zobacz `core/bootstrap.py` — krótki, czytelny plik. W skrócie: sprawdza brak
 
 ## Licencja
 
-Blackbird (osadzony w `blackbird/`) jest na licencji GPLv3 — zobacz `blackbird/LICENSE`. Reszta projektu jest licencjonowana osobnie (zobacz `LICENSE` w katalogu głównym repozytorium, jeśli istnieje) — ta licencja nie obejmuje `blackbird/`.
+Blackbird (osadzony w `blackbird/`) jest na licencji GPLv3 — zobacz `blackbird/docs/LICENSE`. Reszta projektu jest licencjonowana osobnie (zobacz `LICENSE` w katalogu głównym repozytorium, jeśli istnieje) — ta licencja nie obejmuje `blackbird/`.

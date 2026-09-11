@@ -80,7 +80,7 @@ def test_ensure_ready_calls_all_steps_in_order_and_returns_config(monkeypatch):
     calls = []
     monkeypatch.setattr(bootstrap, "_ensure_dependencies", lambda: calls.append("deps"))
     monkeypatch.setattr(bootstrap, "_ensure_env_file", lambda: calls.append("env"))
-    monkeypatch.setattr(bootstrap, "load_dotenv", lambda: calls.append("load_dotenv"))
+    monkeypatch.setattr(bootstrap, "_load_env", lambda: calls.append("load_dotenv"))
     monkeypatch.setattr(bootstrap, "_ensure_ghunt", lambda: calls.append("ghunt"))
     monkeypatch.setenv("BOT_TOKEN", "123:ABC")
     monkeypatch.setenv("ADMIN_ID", "1")

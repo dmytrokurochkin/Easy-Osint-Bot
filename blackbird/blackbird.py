@@ -157,6 +157,7 @@ def initiate():
     config.instagram_session_id = os.getenv("INSTAGRAM_SESSION_ID")
     config.api_url = os.getenv("API_URL")
 
+    # Locally modified for Windows compatibility - see blackbird/PATCHES.md
     config.console = Console(legacy_windows=False)
 
     config.dateRaw = datetime.now().strftime("%m_%d_%Y")
