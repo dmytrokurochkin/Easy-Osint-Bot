@@ -14,43 +14,64 @@
     --card-bg: rgba(26, 23, 21, 0.75);
     --card-border: rgba(92, 82, 77, 0.4);
     --text-color: #e4deda;
-    --text-muted: #8c7e75;
+    --text-muted: #a8998f;
+    --link: #8fbaf0;
+    --link-visited: #b79cf0;
   }
+  * { -webkit-tap-highlight-color: transparent; }
   body { background-color: var(--bg-dark); color: var(--text-color); font-family: 'JetBrains Mono', monospace; }
+  ::selection { background: #4a3f6e; color: #fff; }
   .tactical-card { background: var(--card-bg); border: 1px solid var(--card-border); backdrop-filter: blur(8px); }
   .status-ok { color: #9fd8a0; }
   .status-bad { color: #d88a8a; }
-  .row { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid rgba(92, 82, 77, 0.15); padding: 8px 0; font-size: 13px; word-break: break-all; }
+  /* Stacked (label above value) instead of a side-by-side row: a flex row
+     sharing width between a label and an arbitrarily long value (a raw URL,
+     a Gaia ID) is what broke the layout - there is no width left to give
+     the value once the label takes its share. Stacking removes the
+     competition entirely, on every screen size, not just mobile. */
+  .row { padding: 10px 0; border-bottom: 1px solid rgba(92, 82, 77, 0.15); }
   .row:last-child { border-bottom: none; }
+  .row-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.03em; text-transform: uppercase; margin-bottom: 3px; }
+  .row-value { font-size: 14px; line-height: 1.5; color: #fff; overflow-wrap: anywhere; }
+  .row-value a { color: var(--link); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(143, 186, 240, 0.4); }
+  .row-value a:visited { color: var(--link-visited); }
+  .row-value a:hover { text-decoration-color: currentColor; }
+  .row-value a:focus-visible, a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 2px; }
 </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 sm:p-8">
 <main class="max-w-2xl w-full flex flex-col py-8">
-  <h1 class="text-3xl font-medium tracking-tight mb-2 text-white">{{ report_title }}</h1>
+  <h1 class="text-2xl sm:text-3xl font-medium tracking-tight mb-2 text-white break-words">{{ report_title }}</h1>
   <p class="text-xs text-[#a8998f] mb-8 tracking-widest font-light">
     {{ query_type_label|upper }} • {{ generated_at }}
   </p>
 
   {% for result in results %}
   <div class="tactical-card p-5 rounded-none mb-6">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between mb-3 gap-3">
       <span class="text-[10px] text-[#a8998f] tracking-wider font-semibold">
         {{ tool_names.get(result.tool, result.tool) }}
       </span>
       {% if result.status == "ok" %}
-        <span class="text-[10px] status-ok">&#9679; {{ status_ok_label }}</span>
+        <span class="text-[10px] status-ok shrink-0">&#9679; {{ status_ok_label }}</span>
       {% else %}
-        <span class="text-[10px] status-bad">&#9679; {{ status_unavailable_label }}</span>
+        <span class="text-[10px] status-bad shrink-0">&#9679; {{ status_unavailable_label }}</span>
       {% endif %}
     </div>
 
     {% if result.status == "ok" %}
       {% if result.items %}
-        <div class="space-y-1">
+        <div>
           {% for item in result.items %}
           <div class="row">
-            <div class="font-bold text-white">{{ item.label }}</div>
-            <div class="text-[#8c7e75] text-right">{{ item.value }}</div>
+            <div class="row-label">{{ item.label }}</div>
+            <div class="row-value">
+              {% if item.value is url %}
+                <a href="{{ item.value }}" target="_blank" rel="noopener noreferrer">{{ item.value }}</a>
+              {% else %}
+                {{ item.value }}
+              {% endif %}
+            </div>
           </div>
           {% endfor %}
         </div>

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -7,6 +8,12 @@ from locales import get_text
 from osint.types import ToolResult
 
 TEMPLATE_DIR = Path(__file__).parent
+
+_URL_RE = re.compile(r"^https?://\S+$", re.IGNORECASE)
+
+
+def _is_url(value: str) -> bool:
+    return bool(_URL_RE.match(value))
 
 # Proper nouns / brand names - identical across every supported language.
 STATIC_TOOL_NAMES = {
@@ -42,6 +49,7 @@ def render_report(
         loader=FileSystemLoader(str(TEMPLATE_DIR)),
         autoescape=True,
     )
+    env.tests["url"] = _is_url
     template = env.get_template("template.html.j2")
     html = template.render(
         lang=lang,

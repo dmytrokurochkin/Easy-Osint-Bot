@@ -64,3 +64,29 @@ def test_render_report_phone_tool_name_is_localized(tmp_path):
     out_path = render_report("+380001112233", "phone", results, reports_dir=tmp_path, lang="pl")
     content = out_path.read_text(encoding="utf-8")
     assert "Numer telefonu" in content
+
+
+def test_render_report_renders_url_values_as_clickable_links(tmp_path):
+    results = [
+        ToolResult(
+            tool="maigret",
+            status="ok",
+            items=[{"label": "GitHub", "value": "https://github.com/mrmozozavr"}],
+        ),
+    ]
+
+    out_path = render_report("mrmozozavr", "username", results, reports_dir=tmp_path, lang="en")
+
+    content = out_path.read_text(encoding="utf-8")
+    assert '<a href="https://github.com/mrmozozavr" target="_blank" rel="noopener noreferrer">' in content
+
+
+def test_render_report_non_url_values_are_not_linked(tmp_path):
+    results = [
+        ToolResult(tool="holehe", status="ok", items=[{"label": "GitHub", "value": "знайдено"}]),
+    ]
+
+    out_path = render_report("user@example.com", "email", results, reports_dir=tmp_path, lang="en")
+
+    content = out_path.read_text(encoding="utf-8")
+    assert "<a href=" not in content
