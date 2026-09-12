@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 import core.bootstrap as bootstrap
@@ -35,12 +36,42 @@ def test_ensure_env_file_skips_when_present(tmp_path, monkeypatch):
 def test_ensure_dependencies_installs_when_module_missing(monkeypatch):
     monkeypatch.setattr(bootstrap.importlib.util, "find_spec", lambda name: None)
     calls = []
-    monkeypatch.setattr(bootstrap.subprocess, "run", lambda cmd, **kwargs: calls.append(cmd))
+
+    def _fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(bootstrap.subprocess, "run", _fake_run)
 
     bootstrap._ensure_dependencies()
 
     assert len(calls) == 1
     assert calls[0][:4] == [sys.executable, "-m", "pip", "install"]
+
+
+def test_ensure_dependencies_retries_one_at_a_time_when_batch_fails(monkeypatch, tmp_path):
+    requirements_path = tmp_path / "requirements.txt"
+    requirements_path.write_text("aiogram>=3.10\n# comment\naiosqlite>=0.20\n", encoding="utf-8")
+    monkeypatch.setattr(bootstrap, "REQUIREMENTS_PATH", requirements_path)
+    monkeypatch.setattr(bootstrap.importlib.util, "find_spec", lambda name: None)
+    calls = []
+
+    def _fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        if cmd[-1] == str(requirements_path):
+            return subprocess.CompletedProcess(cmd, 1)
+        if cmd[-1] == "aiosqlite>=0.20":
+            return subprocess.CompletedProcess(cmd, 1)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(bootstrap.subprocess, "run", _fake_run)
+
+    bootstrap._ensure_dependencies()
+
+    assert calls[0][-1] == str(requirements_path)
+    assert calls[1][-1] == "aiogram>=3.10"
+    assert calls[2][-1] == "aiosqlite>=0.20"
+    assert len(calls) == 3
 
 
 def test_ensure_dependencies_skips_when_all_present(monkeypatch):

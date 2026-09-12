@@ -22,10 +22,33 @@ def _ensure_dependencies() -> None:
     if not missing:
         return
     print(f"Installing missing dependencies: {', '.join(missing)}...")
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-r", str(REQUIREMENTS_PATH)],
-        check=True,
-    )
+    result = subprocess.run([sys.executable, "-m", "pip", "install", "-r", str(REQUIREMENTS_PATH)])
+    if result.returncode == 0:
+        return
+
+    # The batch install can fail because of a single unbuildable requirement
+    # (e.g. sherlock-project pins pandas<3.0, which has no prebuilt wheel on
+    # Windows/arm64 and fails compiling via meson) even though every other
+    # requirement installs fine. Every OSINT runner already tolerates its
+    # own tool being missing (returns ToolResult(status="failed") instead of
+    # raising), so one broken dependency must not block the whole bot from
+    # starting - retry one requirement at a time and only warn about
+    # whichever ones actually fail.
+    print("Batch install failed - retrying dependencies one at a time...")
+    lines = REQUIREMENTS_PATH.read_text(encoding="utf-8").splitlines()
+    requirements = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
+    failed = []
+    for requirement in requirements:
+        r = subprocess.run([sys.executable, "-m", "pip", "install", requirement])
+        if r.returncode != 0:
+            failed.append(requirement)
+    if failed:
+        print(
+            "Could not install: "
+            + ", ".join(failed)
+            + ". The matching OSINT tool(s) will report as unavailable "
+            "instead of blocking the bot from starting."
+        )
 
 
 def _ensure_env_file() -> None:
