@@ -4,6 +4,14 @@ English · [Українська](README.uk.md) · [Polski](README.pl.md)
 
 A Telegram bot for OSINT lookups by username, email, or phone number, using Blackbird, Maigret, Sherlock, Holehe, and GHunt. English / Ukrainian / Polish — every user picks their own language from the bot's menu.
 
+## Disclaimer
+
+This project is provided for **educational and authorized security-research purposes only**. It exists to help you audit your own digital footprint and to support lawful OSINT work carried out with proper authorization.
+
+Do not use it against any person, account, or organization without their explicit consent or without a legitimate legal basis to do so. Using it to stalk, harass, dox, discriminate against, or otherwise harm another person — or for any other illegal purpose — is strictly prohibited.
+
+This software is provided "as is", without warranty of any kind. The author(s) accept no liability for any damage, loss, or legal consequence arising from its use or misuse. You are solely responsible for ensuring your use complies with the laws of your jurisdiction and the terms of service of every platform queried.
+
 ## Requirements
 
 - **Python 3.11 or later**

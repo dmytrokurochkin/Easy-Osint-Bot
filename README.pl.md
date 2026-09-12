@@ -4,6 +4,14 @@
 
 Bot na Telegramie do wyszukiwań OSINT po nazwie użytkownika, e-mailu lub numerze telefonu, z użyciem Blackbird, Maigret, Sherlock, Holehe i GHunt. Angielski / ukraiński / polski — każdy użytkownik wybiera własny język w menu bota.
 
+## Zastrzeżenie
+
+Ten projekt jest udostępniany **wyłącznie w celach edukacyjnych i do autoryzowanych badań bezpieczeństwa**. Ma pomóc sprawdzić własny cyfrowy ślad oraz wspierać legalne działania OSINT prowadzone z odpowiednim upoważnieniem.
+
+Zabrania się używania go wobec jakiejkolwiek osoby, konta czy organizacji bez jej wyraźnej zgody lub bez uzasadnionej podstawy prawnej. Używanie go do nękania, śledzenia, doxingu, dyskryminacji lub innej krzywdy wobec innej osoby — albo w jakimkolwiek innym nielegalnym celu — jest surowo zabronione.
+
+To oprogramowanie jest dostarczane "tak jak jest", bez żadnej gwarancji. Autor(zy) nie ponoszą odpowiedzialności za jakiekolwiek szkody, straty ani konsekwencje prawne wynikające z jego użycia lub niewłaściwego użycia. Wyłączną odpowiedzialność za zgodność użytkowania z prawem twojej jurysdykcji oraz z regulaminami każdej odpytywanej platformy ponosisz ty sam.
+
 ## Wymagania
 
 - **Python 3.11 lub nowszy**
