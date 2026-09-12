@@ -41,6 +41,30 @@ async def test_run_ghunt_missing_result_file_is_failed(tmp_path, fake_subprocess
     assert result.error
 
 
+async def test_run_ghunt_sets_pythonioencoding_utf8(tmp_path):
+    import asyncio
+
+    from tests.conftest import FakeProcess
+
+    captured_kwargs = {}
+
+    async def fake_create(*args, **kwargs):
+        captured_kwargs.update(kwargs)
+        return FakeProcess(returncode=1)
+
+    monkeypatch_target = asyncio.create_subprocess_exec
+    asyncio.create_subprocess_exec = fake_create
+    try:
+        await ghunt.run_ghunt("nobody@gmail.com", tmp_path)
+    finally:
+        asyncio.create_subprocess_exec = monkeypatch_target
+
+    # GHunt's rich banner crashes on Windows when this isn't set (emoji vs
+    # the cp1252 fallback encoding rich uses without a detected console) -
+    # see the comment in osint/runners/ghunt.py.
+    assert captured_kwargs["env"]["PYTHONIOENCODING"] == "utf-8"
+
+
 async def test_run_ghunt_timeout(tmp_path, fake_subprocess, monkeypatch):
     monkeypatch.setattr(ghunt, "TIMEOUT_SECONDS", 0.05)
     fake_subprocess(sleep=1)

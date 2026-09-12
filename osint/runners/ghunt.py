@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from pathlib import Path
 
 from osint.types import ToolResult
@@ -55,12 +56,19 @@ def _parse_result_file(path: Path) -> list[dict]:
 async def run_ghunt(email: str, work_dir: Path) -> ToolResult:
     json_path = Path(work_dir) / "ghunt_result.json"
 
+    # Same reasoning as blackbird/maigret/sherlock's runners: GHunt's rich
+    # banner contains emoji, and rich falls back to encoding output with the
+    # OS locale codepage (cp1252 on Windows) when it can't detect a real
+    # console through a subprocess pipe - that crashes on the emoji before
+    # GHunt gets a chance to run at all. PYTHONIOENCODING=utf-8 fixes it.
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
     proc = await asyncio.create_subprocess_exec(
         "ghunt",
         "email",
         email,
         "--json",
         str(json_path),
+        env=env,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
